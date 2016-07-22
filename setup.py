@@ -56,7 +56,6 @@ if __name__ == '__main__':
         author_email="alex {dot} rubinsteyn {at} mssm {dot} edu",
         url="https://github.com/iskandr/serializable",
         license="http://www.apache.org/licenses/LICENSE-2.0.html",
-        },
         classifiers=[
             'Development Status :: 3 - Alpha',
             'Environment :: Console',
