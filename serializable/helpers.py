@@ -19,6 +19,16 @@ from types import FunctionType, BuiltinFunctionType
 
 from .primtive_types import return_primitive
 
+def _lookup_value(module_string, name):
+    module_parts = module_string.split(".")
+    attribute_list = module_parts[1:] + name.split(".")
+    # traverse the chain of imports and nested classes to get to the
+    # actual class value
+    value = __import__(module_parts[0])
+    for attribute_name in attribute_list:
+        value = getattr(value, attribute_name)
+    return value
+
 
 def class_from_serializable_representation(class_repr):
     """
@@ -26,14 +36,7 @@ def class_from_serializable_representation(class_repr):
     and gets the class object from it.
     """
     module_string, class_name = class_repr
-    module_parts = module_string.split(".")
-    attribute_list = module_parts[1:] + class_name.split(".")
-    # traverse the chain of imports and nested classes to get to the
-    # actual class value
-    value = __import__(module_parts[0])
-    for name in attribute_list:
-        value = getattr(value, name)
-    return value
+    return _lookup_value(module_string, class_name)
 
 def class_to_serializable_representation(cls):
     """
@@ -52,10 +55,8 @@ def function_from_serializable_representation(fn_repr):
     Given the name of a module and a function it contains, imports that module
     and gets the class object from it.
     """
-    module_string, class_name = fn_repr
-    module = __import__(module_string)
-    return getattr(module, class_name)
-
+    module_string, fn_name = fn_repr
+    return _lookup_value(module_string, fn_name)
 
 @return_primitive
 def function_to_serializable_representation(fn):
