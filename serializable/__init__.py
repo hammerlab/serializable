@@ -13,23 +13,12 @@
 from __future__ import print_function, division, absolute_import
 
 from .serializable import Serializable
-from .helpers import (
-    class_from_serializable_representation,
-    class_to_serializable_representation,
-    function_from_serializable_representation,
-    function_to_serializable_representation,
-    object_to_serializable_representation,
-    object_from_serializable_representation,
-)
+from .helpers import to_serializable_repr, from_serializable_repr
 
 __version__ = "0.0.2"
 
 __all__ = [
     "Serializable",
-    "class_from_serializable_representation",
-    "class_to_serializable_representation",
-    "function_from_serializable_representation",
-    "function_to_serializable_representation",
-    "object_to_serializable_representation",
-    "object_from_serializable_representation",
+    "to_serializable_repr",
+    "from_serializable_repr",
 ]

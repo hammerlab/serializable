@@ -1,6 +1,6 @@
 from serializable import (
-    object_to_serializable_representation,
-    object_from_serializable_representation,
+    from_serializable_repr,
+    to_serializable_repr,
     Serializable,
 )
 from nose.tools import eq_
@@ -17,8 +17,8 @@ class A(Serializable):
 instance = A(1, 2)
 
 def test_serialize_object_with_helpers():
-    instance_reconstructed = object_from_serializable_representation(
-        object_to_serializable_representation(instance))
+    instance_reconstructed = from_serializable_repr(
+        to_serializable_repr(instance))
     eq_(instance, instance_reconstructed)
 
 def test_json():

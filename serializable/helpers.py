@@ -106,18 +106,25 @@ def object_from_serializable_representation(obj_repr):
 
 
 @return_primitive
-def to_serializable(x):
+def to_serializable_repr(x):
     """
     Convert an instance of Serializable or a primitive collection containing
     such instances into serializable types.
     """
     if isinstance(x, (tuple, list)):
-        return x.__class__([to_serializable(element) for element in x])
+        return x.__class__([to_serializable_repr(element) for element in x])
     elif isinstance(x, dict):
         result = x.__class__()
         for (k, v) in x.items():
-            result[k] = to_serializable(v)
+            result[k] = to_serializable_repr(v)
         return result
+
+    elif isinstance(x, (FunctionType, BuiltinFunctionType)):
+        return function_to_serializable_representation(x)
+
+    elif type(x) is type:
+        return class_to_serializable_representation(x)
+
     # if value wasn't a primitive scalar or collection then it needs to
     # either implement to_dict (instances of Serializable) or _asdict
     # (named tuples)
@@ -131,22 +138,23 @@ def to_serializable(x):
         raise ValueError(
             "Cannot convert %s : %s to serializable representation" % (
                 x, type(x)))
-    state_dictionary = to_serializable(state_dictionary)
+    state_dictionary = to_serializable_repr(state_dictionary)
     state_dictionary["__class__"] = class_to_serializable_representation(x.__class__)
     return state_dictionary
 
 @return_primitive
-def from_serializable(x):
+def from_serializable_repr(x):
     t = type(x)
     if t in (tuple, list):
-        return t([from_serializable(element) for element in x])
+        return t([from_serializable_repr(element) for element in x])
     elif t is dict:
         if "__name__" in x:
-            return
-        result = x.__class__()
-        for (k, v) in x.items():
-            result[k] = to_serializable(v)
-        return result
+            return _lookup_value(x.pop("__module__"), x.pop("__name__"))
+        converted_dict = {k: from_serializable_repr(v) for k, v in x.items()}
+        if "__class__" in converted_dict:
+            class_object = converted_dict.pop("__class__")
+            return class_object(**converted_dict)
+        return converted_dict
     else:
         raise TypeError(
             "Cannot convert %s : %s to serializable representation" % (

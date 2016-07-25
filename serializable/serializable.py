@@ -13,10 +13,7 @@
 from __future__ import print_function, division, absolute_import
 
 import json
-from .helpers import (
-    object_to_serializable_representation,
-    object_from_serializable_representation,
-)
+from .helpers import from_serializable_repr, to_serializable_repr
 
 class Serializable(object):
     """
@@ -48,12 +45,6 @@ class Serializable(object):
         """
         raise NotImplementedError("Method to_dict() not implemented for %s" % (
             self.__class__.__name__,))
-
-    def _to_serializable_dict(self):
-        d = self.to_dict()
-        for k, v in list(d.items()):
-            d[k] = object_to_serializable_representation(v)
-        return d
 
     def __hash__(self):
         return hash(tuple(sorted(self.to_dict().items())))
@@ -117,32 +108,4 @@ class Serializable(object):
         # I wish I could just return (self.from_dict, (self.to_dict(),) but
         # Python 2 won't pickle the class method from_dict so instead have to
         # use globally defined functions.
-        serializable_repr = object_to_serializable_representation(self)
-        return (
-            object_from_serializable_representation,
-            (serializable_repr,))
-
-
-@return_primitive
-def to_serializable(x):
-    """
-    Convert an instance of Serializable or a primitive collection containing
-    such instances into serializable types.
-    """
-    if isinstance(x, (tuple, list)):
-        return x.__class__([to_serializable(element) for element in x])
-    elif isintance() is dict:
-        return {k: to_serializable(v) for (k, v) in x.items()}
-    elif isinstance(x, Serializable):
-        return to_serializable(x.to_dict())
-
-@return_primitive
-def from_serializable(x):
-    t = type(x)
-    if t in (tuple, list):
-        return t([from_serializable(element) for element in x])
-    elif t is dict:
-        return tk: from_serializable(v) for (k, v) in x.items()}
-    elif isinstance(x, Serializable):
-        return x._to_serializable_dict()
-
+        return (from_serializable_repr, (to_serializable_repr(self),))
