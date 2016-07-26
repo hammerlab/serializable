@@ -15,7 +15,7 @@ from __future__ import print_function, division, absolute_import
 from .serializable import Serializable
 from .helpers import to_serializable_repr, from_serializable_repr
 
-__version__ = "0.0.2"
+__version__ = "0.0.4"
 
 __all__ = [
     "Serializable",
