@@ -14,10 +14,11 @@
 Helper functions for deconstructing classes, functions, and user-defined
 objects into serializable types.
 """
+from __future__ import print_function, division, absolute_import
+from types import FunctionType, BuiltinFunctionType
 
 import simplejson as json
-
-from types import FunctionType, BuiltinFunctionType
+from six import string_types
 
 from .primtive_types import return_primitive
 
@@ -80,6 +81,89 @@ def function_to_serializable_representation(fn):
 
     return {"__module__": fn.__module__, "__name__": fn.__name__}
 
+SERIALIZED_DICTIONARY_KEYS_FIELD = "__jsonkeys__"
+SERIALIZED_DICTIONARY_KEYS_ELEMENT_PREFIX = (
+    SERIALIZED_DICTIONARY_KEYS_FIELD + "element_")
+
+def index_to_serialized_key_name(index):
+    return "%s%d" % (SERIALIZED_DICTIONARY_KEYS_ELEMENT_PREFIX, index)
+
+def parse_serialized_keys_index(name):
+    """
+    Given a field name such as __jsonkeys_element_10 returns the integer 10
+    but returns None for other strings.
+    """
+    if name.startswith(SERIALIZED_DICTIONARY_KEYS_ELEMENT_PREFIX):
+        try:
+            return int(name[len(SERIALIZED_DICTIONARY_KEYS_ELEMENT_PREFIX):])
+        except:
+            pass
+    return None
+
+def dict_to_serializable_repr(x):
+    """
+    Recursively convert values of dictionary to serializable representations.
+    Convert non-string keys to JSON representations and replace them in the
+    dictionary with indices of unique JSON strings (e.g. __1, __2, etc..).
+    """
+    # list of JSON representations of hashable objects which were
+    # used as keys in this dictionary
+    serialized_key_list = []
+    serialized_keys_to_names = {}
+    # use the class of x rather just dict since we might want to convert
+    # derived classes such as OrderedDict
+    result = type(x)()
+    for (k, v) in x.items():
+        if not isinstance(k, string_types):
+            # JSON does not support using complex types such as tuples
+            # or user-defined objects with implementations of __hash__ as
+            # keys in a dictionary so we must keep the serialized
+            # representations of such values in a list and refer to indices
+            # in that list
+            serialized_key_repr = to_json(k)
+            if serialized_key_repr in serialized_keys_to_names:
+                k = serialized_keys_to_names[serialized_key_repr]
+            else:
+                k = index_to_serialized_key_name(len(serialized_key_list))
+                serialized_keys_to_names[serialized_key_repr] = k
+                serialized_key_list.append(serialized_key_repr)
+        result[k] = to_serializable_repr(v)
+    if len(serialized_key_list) > 0:
+        # only include this list of serialized keys if we had any non-string
+        # keys
+        result[SERIALIZED_DICTIONARY_KEYS_FIELD] = serialized_key_list
+    return result
+
+def dict_from_serializable_repr(x):
+    """
+    Reconstruct a dictionary by recursively reconstructing all its keys and
+    values.
+
+    This is the most hackish part since we rely on key names such as
+    __name__, __class__, __module__ as metadata about how to reconstruct
+    an object.
+
+    TODO: It would be cleaner to always wrap each object in a layer of type
+    metadata and then have an inner dictionary which represents the flattened
+    result of to_dict() for user-defined objects.
+    """
+    if "__name__" in x:
+        return _lookup_value(x.pop("__module__"), x.pop("__name__"))
+
+    serialized_keys = set(x.get(SERIALIZED_DICTIONARY_KEYS_FIELD, []))
+    converted_dict = type(x)()
+    for k, v in x.items():
+        serialized_key_index = parse_serialized_keys_index(k)
+        if serialized_key_index is not None:
+            k = serialized_keys[serialized_key_index]
+        converted_dict[k] = from_serializable_repr(v)
+    if "__class__" in converted_dict:
+        class_object = converted_dict.pop("__class__")
+        if hasattr(class_object, "from_dict"):
+            return class_object.from_dict(converted_dict)
+        else:
+            return class_object(**converted_dict)
+    return converted_dict
 
 @return_primitive
 def to_serializable_repr(x):
@@ -87,14 +171,10 @@ def to_serializable_repr(x):
     Convert an instance of Serializable or a primitive collection containing
     such instances into serializable types.
     """
-    if isinstance(x, (tuple, list)):
+    if isinstance(x, list) or type(x) is tuple:
         return x.__class__([to_serializable_repr(element) for element in x])
     elif isinstance(x, dict):
-        result = x.__class__()
-        for (k, v) in x.items():
-            result[to_json(k)] = to_serializable_repr(v)
-        return result
-
+        return dict_to_serializable_repr(x)
     elif isinstance(x, (FunctionType, BuiltinFunctionType)):
         return function_to_serializable_representation(x)
 
@@ -115,31 +195,20 @@ def to_serializable_repr(x):
             "Cannot convert %s : %s to serializable representation" % (
                 x, type(x)))
     state_dictionary = to_serializable_repr(state_dictionary)
-    state_dictionary[to_json("__class__")] = class_to_serializable_representation(x.__class__)
+    state_dictionary["__class__"] = class_to_serializable_representation(x.__class__)
     return state_dictionary
+
 
 @return_primitive
 def from_serializable_repr(x):
     t = type(x)
-    if t in (tuple, list):
+    if isinstance(t, list) or t is tuple:
         return t([from_serializable_repr(element) for element in x])
-    elif t is dict:
-        if "__name__" in x:
-            return _lookup_value(x.pop("__module__"), x.pop("__name__"))
-        converted_dict = {
-            from_json(k): from_serializable_repr(v)
-            for k, v in x.items()
-        }
-        if "__class__" in converted_dict:
-            class_object = converted_dict.pop("__class__")
-            if hasattr(class_object, "from_dict"):
-                return class_object.from_dict(converted_dict)
-            else:
-                return class_object(**converted_dict)
-        return converted_dict
+    elif isinstance(x, dict):
+        return dict_from_serializable_repr(x)
     else:
         raise TypeError(
-            "Cannot convert %s : %s to serializable representation" % (
+            "Cannot convert %s : %s from serializable representation to object" % (
                 x, type(x)))
 
 
