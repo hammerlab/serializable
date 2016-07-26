@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/iskandr/serializable.svg?branch=master)](https://travis-ci.org/iskandr/serializable)
+
 # serializable
 Base class with serialization methods for user-defined Python objects
 
