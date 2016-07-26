@@ -12,8 +12,12 @@
 
 from __future__ import print_function, division, absolute_import
 
-import json
-from .helpers import from_serializable_repr, to_serializable_repr
+from .helpers import (
+    from_serializable_repr,
+    to_serializable_repr,
+    to_json,
+    from_json,
+)
 
 class Serializable(object):
     """
@@ -72,15 +76,14 @@ class Serializable(object):
         """
         Returns a string containing a JSON representation of this Genome.
         """
-        return json.dumps(self.to_dict())
+        return to_json(self)
 
     @classmethod
     def from_json(cls, json_string):
         """
         Reconstruct an instance from a JSON string.
         """
-        state_dict = json.loads(json_string)
-        return cls.from_dict(state_dict)
+        return from_json(json_string)
 
     def write_json_file(self, path):
         """

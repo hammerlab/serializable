@@ -66,6 +66,7 @@ if __name__ == '__main__':
         install_requires=[
             "typechecks>=0.0.2",
             "six>=1.9.0",
+            "simplejson",
         ],
         long_description=readme,
         packages=['serializable'],

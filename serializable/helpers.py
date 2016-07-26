@@ -15,6 +15,8 @@ Helper functions for deconstructing classes, functions, and user-defined
 objects into serializable types.
 """
 
+import simplejson as json
+
 from types import FunctionType, BuiltinFunctionType
 
 from .primtive_types import return_primitive
@@ -78,32 +80,6 @@ def function_to_serializable_representation(fn):
 
     return {"__module__": fn.__module__, "__name__": fn.__name__}
 
-@return_primitive
-def object_to_serializable_representation(obj):
-    """
-    Given an instance of a Python object, returns a tuple whose
-    first element is a primitive representation of the class and whose
-    second element is a dictionary of instance data.
-    """
-    if not hasattr(obj, 'to_dict'):
-        raise ValueError("Expected %s to have method to_dict()" % (obj,))
-
-    state_dict = obj.to_dict()
-    class_representation = class_to_serializable_representation(obj.__class__)
-    state_dict["__class__"] = class_representation
-    return state_dict
-
-@return_primitive
-def object_from_serializable_representation(obj_repr):
-    """
-    Given a primitive representation of some object, reconstructs
-    the class from its module and class names and then instantiates. Returns
-    instance object.
-    """
-    class_repr = obj_repr.pop("__class__")
-    subclass = class_from_serializable_representation(class_repr)
-    return subclass.from_dict(obj_repr)
-
 
 @return_primitive
 def to_serializable_repr(x):
@@ -116,7 +92,7 @@ def to_serializable_repr(x):
     elif isinstance(x, dict):
         result = x.__class__()
         for (k, v) in x.items():
-            result[k] = to_serializable_repr(v)
+            result[to_json(k)] = to_serializable_repr(v)
         return result
 
     elif isinstance(x, (FunctionType, BuiltinFunctionType)):
@@ -139,7 +115,7 @@ def to_serializable_repr(x):
             "Cannot convert %s : %s to serializable representation" % (
                 x, type(x)))
     state_dictionary = to_serializable_repr(state_dictionary)
-    state_dictionary["__class__"] = class_to_serializable_representation(x.__class__)
+    state_dictionary[to_json("__class__")] = class_to_serializable_representation(x.__class__)
     return state_dictionary
 
 @return_primitive
@@ -150,12 +126,29 @@ def from_serializable_repr(x):
     elif t is dict:
         if "__name__" in x:
             return _lookup_value(x.pop("__module__"), x.pop("__name__"))
-        converted_dict = {k: from_serializable_repr(v) for k, v in x.items()}
+        converted_dict = {
+            from_json(k): from_serializable_repr(v)
+            for k, v in x.items()
+        }
         if "__class__" in converted_dict:
             class_object = converted_dict.pop("__class__")
-            return class_object(**converted_dict)
+            if hasattr(class_object, "from_dict"):
+                return class_object.from_dict(converted_dict)
+            else:
+                return class_object(**converted_dict)
         return converted_dict
     else:
         raise TypeError(
             "Cannot convert %s : %s to serializable representation" % (
                 x, type(x)))
+
+
+def to_json(x):
+    """
+    Returns JSON representation of a given Serializable instance or
+    other primitive object.
+    """
+    return json.dumps(to_serializable_repr(x))
+
+def from_json(json_string):
+    return from_serializable_repr(json.loads(json_string))
