@@ -30,7 +30,7 @@ def return_primitive(fn):
     """
     @wraps(fn)
     def wrapped_fn(x):
-        if type(x) in PRIMITIVE_TYPES:
+        if isinstance(x, PRIMITIVE_TYPES):
             return x
         return fn(x)
     return wrapped_fn
