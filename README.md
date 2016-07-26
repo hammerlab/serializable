@@ -14,7 +14,6 @@ Your derived class must:
 
 ## Limitations
 
-* Nested objects must be (1) other objects which inherit from `Serializable` (2) namedtuples or (3) primitive types.
+* Serializable objects must inherit from `Serializable`, be tuples or namedtuples, be serializble primitive types such as dict, list, int, float, or str.
 
-* The serialized representation of objects relies on reserved keywords which cannot be
-in any regular dictionary: `"__name__"`, `"__class__"`, `"__module__"`, `"__jsonkeys__"`.
+* The serialized representation of objects relies on reserved keywords (such as `"__name__"`, and `"__class__"`), so dictionaries are expect to not contain any keys which begin with two underscores.

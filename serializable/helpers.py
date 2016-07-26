@@ -57,7 +57,6 @@ def class_to_serializable_representation(cls):
     """
     return {"__module__": cls.__module__, "__name__": cls.__name__}
 
-@return_primitive
 def function_from_serializable_representation(fn_repr):
     """
     Given the name of a module and a function it contains, imports that module
@@ -65,7 +64,6 @@ def function_from_serializable_representation(fn_repr):
     """
     return _lookup_value(fn_repr["__module__"], fn_repr["__name__"])
 
-@return_primitive
 def function_to_serializable_representation(fn):
     """
     Converts a Python function into a serializable representation. Does not
@@ -81,7 +79,7 @@ def function_to_serializable_representation(fn):
 
     return {"__module__": fn.__module__, "__name__": fn.__name__}
 
-SERIALIZED_DICTIONARY_KEYS_FIELD = "__jsonkeys__"
+SERIALIZED_DICTIONARY_KEYS_FIELD = "__serialized_keys__"
 SERIALIZED_DICTIONARY_KEYS_ELEMENT_PREFIX = (
     SERIALIZED_DICTIONARY_KEYS_FIELD + "element_")
 
@@ -90,7 +88,7 @@ def index_to_serialized_key_name(index):
 
 def parse_serialized_keys_index(name):
     """
-    Given a field name such as __jsonkeys_element_10 returns the integer 10
+    Given a field name such as __serialized_keys__element_10 returns the integer 10
     but returns None for other strings.
     """
     if name.startswith(SERIALIZED_DICTIONARY_KEYS_ELEMENT_PREFIX):
@@ -149,21 +147,30 @@ def dict_from_serializable_repr(x):
     """
     if "__name__" in x:
         return _lookup_value(x.pop("__module__"), x.pop("__name__"))
-
-    serialized_keys = set(x.get(SERIALIZED_DICTIONARY_KEYS_FIELD, []))
+    non_string_key_objects = [
+        from_json(serialized_key)
+        for serialized_key
+        in x.pop(SERIALIZED_DICTIONARY_KEYS_FIELD, [])
+    ]
     converted_dict = type(x)()
     for k, v in x.items():
         serialized_key_index = parse_serialized_keys_index(k)
         if serialized_key_index is not None:
-            k = serialized_keys[serialized_key_index]
+            k = non_string_key_objects[serialized_key_index]
+
         converted_dict[k] = from_serializable_repr(v)
     if "__class__" in converted_dict:
         class_object = converted_dict.pop("__class__")
-        if hasattr(class_object, "from_dict"):
+        if "__value__" in converted_dict:
+            return class_object(x["__value__"])
+        elif hasattr(class_object, "from_dict"):
             return class_object.from_dict(converted_dict)
         else:
             return class_object(**converted_dict)
     return converted_dict
+
+def list_to_serializable_repr(x):
+    return type(x)([to_serializable_repr(element) for element in x])
 
 @return_primitive
 def to_serializable_repr(x):
@@ -171,13 +178,18 @@ def to_serializable_repr(x):
     Convert an instance of Serializable or a primitive collection containing
     such instances into serializable types.
     """
-    if isinstance(x, list) or type(x) is tuple:
-        return x.__class__([to_serializable_repr(element) for element in x])
+    t = type(x)
+    if isinstance(x, list):
+        return list_to_serializable_repr(x)
+    elif t is tuple:
+        return {
+            "__class__": class_to_serializable_representation(tuple),
+            "__value__": list_to_serializable_repr(x)
+        }
     elif isinstance(x, dict):
         return dict_to_serializable_repr(x)
     elif isinstance(x, (FunctionType, BuiltinFunctionType)):
         return function_to_serializable_representation(x)
-
     elif type(x) is type:
         return class_to_serializable_representation(x)
 
@@ -186,10 +198,12 @@ def to_serializable_repr(x):
     # (named tuples)
 
     state_dictionary = None
+
     if hasattr(x, "to_dict"):
         state_dictionary = x.to_dict()
     elif hasattr(x, "_asdict"):
         state_dictionary = x._asdict()
+
     if state_dictionary is None:
         raise ValueError(
             "Cannot convert %s : %s to serializable representation" % (
@@ -202,15 +216,16 @@ def to_serializable_repr(x):
 @return_primitive
 def from_serializable_repr(x):
     t = type(x)
-    if isinstance(t, list) or t is tuple:
+    if isinstance(x, list):
         return t([from_serializable_repr(element) for element in x])
+    elif t is tuple:
+        return tuple([from_serializable_repr(element) for element in x])
     elif isinstance(x, dict):
         return dict_from_serializable_repr(x)
     else:
         raise TypeError(
             "Cannot convert %s : %s from serializable representation to object" % (
                 x, type(x)))
-
 
 def to_json(x):
     """
