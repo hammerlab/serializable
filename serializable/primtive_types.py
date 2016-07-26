@@ -17,11 +17,13 @@ be serialized and deserialized successfully.
 from __future__ import print_function, division, absolute_import
 
 from functools import wraps
-from six import string_types, integer_types
+from six import text_type, integer_types, PY2
 
 NoneType = type(None)
 
-PRIMITIVE_TYPES = (bool, float, NoneType) + string_types + integer_types
+PRIMITIVE_TYPES = (bool, float, NoneType, text_type) + integer_types
+if PY2:
+    PRIMITIVE_TYPES = (str,) + PRIMITIVE_TYPES
 
 def return_primitive(fn):
     """
@@ -30,7 +32,7 @@ def return_primitive(fn):
     """
     @wraps(fn)
     def wrapped_fn(x):
-        if isinstance(x, PRIMITIVE_TYPES):
+        if type(x) in PRIMITIVE_TYPES:
             return x
         return fn(x)
     return wrapped_fn
