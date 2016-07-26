@@ -12,10 +12,11 @@
 
 from __future__ import print_function, division, absolute_import
 
-import json
 from .helpers import (
-    object_to_serializable_representation,
-    object_from_serializable_representation,
+    from_serializable_repr,
+    to_serializable_repr,
+    to_json,
+    from_json,
 )
 
 class Serializable(object):
@@ -43,7 +44,8 @@ class Serializable(object):
         """
         Derived classes must implement this method and return a dictionary
         whose keys match the parameters to __init__. The values must be
-        primitive types (string, int, float, tuple, dict, list).
+        primitive atomic types (bool, string, int, float), primitive
+        collections (int, list, tuple) or instances of Serializable.
         """
         raise NotImplementedError("Method to_dict() not implemented for %s" % (
             self.__class__.__name__,))
@@ -74,15 +76,14 @@ class Serializable(object):
         """
         Returns a string containing a JSON representation of this Genome.
         """
-        return json.dumps(self.to_dict())
+        return to_json(self)
 
     @classmethod
     def from_json(cls, json_string):
         """
         Reconstruct an instance from a JSON string.
         """
-        state_dict = json.loads(json_string)
-        return cls.from_dict(state_dict)
+        return from_json(json_string)
 
     def write_json_file(self, path):
         """
@@ -110,7 +111,4 @@ class Serializable(object):
         # I wish I could just return (self.from_dict, (self.to_dict(),) but
         # Python 2 won't pickle the class method from_dict so instead have to
         # use globally defined functions.
-        serializable_repr = object_to_serializable_representation(self)
-        return (
-            object_from_serializable_representation,
-            (serializable_repr,))
+        return (from_serializable_repr, (to_serializable_repr(self),))
