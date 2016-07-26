@@ -17,11 +17,11 @@ be serialized and deserialized successfully.
 from __future__ import print_function, division, absolute_import
 
 from functools import wraps
-from six import text_type, integer_types
+from six import string_types, integer_types
 
 NoneType = type(None)
 
-PRIMITIVE_TYPES = (bool, float, NoneType, text_type) + integer_types
+PRIMITIVE_TYPES = (bool, float, NoneType) + string_types + integer_types
 
 def return_primitive(fn):
     """
