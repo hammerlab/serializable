@@ -132,7 +132,7 @@ def dict_to_serializable_repr(x):
         result[SERIALIZED_DICTIONARY_KEYS_FIELD] = serialized_key_list
     return result
 
-def dict_from_serializable_repr(x):
+def from_serializable_dict(x):
     """
     Reconstruct a dictionary by recursively reconstructing all its keys and
     values.
@@ -147,6 +147,7 @@ def dict_from_serializable_repr(x):
     """
     if "__name__" in x:
         return _lookup_value(x.pop("__module__"), x.pop("__name__"))
+
     non_string_key_objects = [
         from_json(serialized_key)
         for serialized_key
@@ -170,7 +171,7 @@ def dict_from_serializable_repr(x):
     return converted_dict
 
 def list_to_serializable_repr(x):
-    return type(x)([to_serializable_repr(element) for element in x])
+    return [to_serializable_repr(element) for element in x]
 
 @return_primitive
 def to_serializable_repr(x):
@@ -181,9 +182,9 @@ def to_serializable_repr(x):
     t = type(x)
     if isinstance(x, list):
         return list_to_serializable_repr(x)
-    elif t is tuple:
+    elif t in (set, tuple):
         return {
-            "__class__": class_to_serializable_representation(tuple),
+            "__class__": class_to_serializable_representation(t),
             "__value__": list_to_serializable_repr(x)
         }
     elif isinstance(x, dict):
@@ -218,10 +219,8 @@ def from_serializable_repr(x):
     t = type(x)
     if isinstance(x, list):
         return t([from_serializable_repr(element) for element in x])
-    elif t is tuple:
-        return tuple([from_serializable_repr(element) for element in x])
     elif isinstance(x, dict):
-        return dict_from_serializable_repr(x)
+        return from_serializable_dict(x)
     else:
         raise TypeError(
             "Cannot convert %s : %s from serializable representation to object" % (
