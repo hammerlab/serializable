@@ -42,13 +42,23 @@ class Serializable(object):
 
     def to_dict(self):
         """
-        Derived classes must implement this method and return a dictionary
+        Derived classes should implement this method and return a dictionary
         whose keys match the parameters to __init__. The values must be
         primitive atomic types (bool, string, int, float), primitive
         collections (int, list, tuple) or instances of Serializable.
+
+        The default implementation is to assume all the arguments to __init__
+        have fields of the same name on a serializable object.
         """
-        raise NotImplementedError("Method to_dict() not implemented for %s" % (
-            self.__class__.__name__,))
+        # doing something wildly hacky by pulling out the arguments to
+        # __init__ and hoping that they match fields defined on the
+        # object
+        init_fn = self.__init__.__func__
+        init_code = init_fn.__code__
+        arg_names = init_code.co_varnames[:init_code.co_argcount]
+        # drop self argument
+        nonself_arg_names = arg_names[1:]
+        return {name: getattr(self, name) for name in nonself_arg_names}
 
     def __hash__(self):
         return hash(tuple(sorted(self.to_dict().items())))
