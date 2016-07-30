@@ -42,10 +42,11 @@ class Serializable(object):
 
     def to_dict(self):
         """
-        Derived classes should implement this method and return a dictionary
-        whose keys match the parameters to __init__. The values must be
-        primitive atomic types (bool, string, int, float), primitive
-        collections (int, list, tuple) or instances of Serializable.
+        Returns a dictionary which can be used to reconstruct an instance
+        of a derived class (typically by matching args to __init__). The values
+        of the returned dictionary must be primitive atomic types
+        (bool, string, int, float), primitive collections
+        (int, list, tuple, set) or instances of Serializable.
 
         The default implementation is to assume all the arguments to __init__
         have fields of the same name on a serializable object.
