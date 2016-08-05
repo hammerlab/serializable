@@ -18,9 +18,10 @@ from .helpers import (
     from_serializable_repr,
     to_json,
     from_json,
+    to_dict,
 )
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 
 __all__ = [
     "Serializable",
@@ -28,4 +29,5 @@ __all__ = [
     "from_serializable_repr",
     "to_json",
     "from_json",
+    "to_dict",
 ]

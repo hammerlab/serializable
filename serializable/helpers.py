@@ -173,6 +173,22 @@ def from_serializable_dict(x):
 def list_to_serializable_repr(x):
     return [to_serializable_repr(element) for element in x]
 
+def to_dict(obj):
+    """
+    If value wasn't isn't a primitive scalar or collection then it needs to
+    either implement to_dict (instances of Serializable) or _asdict
+    (named tuples)
+    """
+    if isinstance(obj, dict):
+        return obj
+    elif hasattr(obj, "to_dict"):
+        return obj.to_dict()
+    elif hasattr(obj, "_asdict"):
+        return obj._asdict()
+    raise ValueError(
+        "Cannot convert %s : %s to dictionary" % (
+            obj, type(obj)))
+
 @return_primitive
 def to_serializable_repr(x):
     """
@@ -193,26 +209,9 @@ def to_serializable_repr(x):
         return function_to_serializable_representation(x)
     elif type(x) is type:
         return class_to_serializable_representation(x)
-
-    # if value wasn't a primitive scalar or collection then it needs to
-    # either implement to_dict (instances of Serializable) or _asdict
-    # (named tuples)
-
-    state_dictionary = None
-
-    if hasattr(x, "to_dict"):
-        state_dictionary = x.to_dict()
-    elif hasattr(x, "_asdict"):
-        state_dictionary = x._asdict()
-
-    if state_dictionary is None:
-        raise ValueError(
-            "Cannot convert %s : %s to serializable representation" % (
-                x, type(x)))
-    state_dictionary = to_serializable_repr(state_dictionary)
+    state_dictionary = to_serializable_repr(to_dict(x))
     state_dictionary["__class__"] = class_to_serializable_representation(x.__class__)
     return state_dictionary
-
 
 @return_primitive
 def from_serializable_repr(x):
