@@ -20,7 +20,7 @@ from types import FunctionType, BuiltinFunctionType
 import simplejson as json
 from six import string_types
 
-from .primtive_types import return_primitive
+from .primitive_types import return_primitive
 
 
 def _lookup_value(module_string, name, _cache={}):
