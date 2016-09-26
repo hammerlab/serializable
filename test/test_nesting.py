@@ -8,6 +8,14 @@ class A(Serializable):
     def to_dict(self):
         return {"a_val": self.a}
 
+class B(Serializable):
+    def __init__(self, set_a_vals=set([A(1), A(2)])):
+        self.set_a_vals = set_a_vals
+
+    def to_dict(self):
+        return {"set_a_vals": self.set_a_vals}
+
+
 def test_list_of_lists():
     x = [[1, 2], ["hello", "wookies"], [A(1), A(2)]]
     eq_(x, from_serializable_repr(to_serializable_repr(x)))
@@ -22,4 +30,8 @@ def test_dict_with_tuple_keys():
 
 def test_object_with_dict_values():
     x = A(dict(snooze=5))
+    eq_(x, from_serializable_repr(to_serializable_repr(x)))
+
+def test_object_with_set_values():
+    x = B()
     eq_(x, from_serializable_repr(to_serializable_repr(x)))
