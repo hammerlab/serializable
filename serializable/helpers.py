@@ -163,7 +163,7 @@ def from_serializable_dict(x):
     if "__class__" in converted_dict:
         class_object = converted_dict.pop("__class__")
         if "__value__" in converted_dict:
-            return class_object(x["__value__"])
+            return class_object(converted_dict["__value__"])
         elif hasattr(class_object, "from_dict"):
             return class_object.from_dict(converted_dict)
         else:
