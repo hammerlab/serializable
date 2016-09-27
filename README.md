@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/iskandr/serializable.svg?branch=master)](https://travis-ci.org/iskandr/serializable)
+[![Build Status](https://travis-ci.org/hammerlab/serializable.svg?branch=master)](https://travis-ci.org/hammerlab/serializable)
 
 # serializable
 Base class with serialization methods for user-defined Python objects
