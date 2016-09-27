@@ -40,3 +40,11 @@ script:
   - nosetests test --verbose --with-coverage --cover-package=serializable
 after_success:
   coveralls
+deploy:
+  provider: pypi
+  distributions: sdist
+  user: hammerlab
+  password:
+    secure: l9cmzH42iy3g+y7WF9OEX96tz/8KX2CFxyhs2PnVEI+eoTOZ65U/NMUKNYd+oxG7lUysHzeOKehy1W8e+3SODRC7Uid+pQtkYVNarRp9NqucrLNQwukWvgFM+r//J6sL7Pro5Ns9Cl+64dxtkyBuXvN+8lB6MuG+OmRwCkmXcwZlRs2TFF/Yea6G4lomXjIoJUGBPZJkqKnBWF9TcKlSWjJrSimqvvviZgA68yxxn8o17lWf3b2c8JBqVzbfaQz0a998okZmHEyXg3SmRkaL6Lyr9N9UrVqSvFilEYd2FEwbjXOCbrr/fPiRsLCQazCsjo+PS4H0aDy5T601yjF66C8v/CF+M+FbJ0dbhr1U9VAez0RFFu0vADnSmmTeCTJtvTHLFV3Oc0tC8ler3R5QfBEYcHoof77UsaoV79dQIOBV9x6fNJQZ5HUUBWDf3AL4YmN4yoGrq8NPNxe4P/3ybL/ghlfUAqkrBftmwszLHC+IovU+OxNGJ+fzLcJmHqucl8xPIJ8lRj2Fn1bLgTJPDVZI6Pc9dDis/x5Mq6x5znKyET5OdlqhS70PE7zBjSarGlEg6IRaPrCulgA2GAfeSHq9u/oUdv7MECa7JITOQUkNr5Jr9KejfClVlJ5fGQALtQo7ci1gaiUO2m9gJnXCiqD11b3fC7hCOcEEEJjxKhM=
+  on:
+    branch: master
