@@ -54,7 +54,7 @@ if __name__ == '__main__':
         description="Base class with serialization helpers for user-defined Python objects",
         author="Alex Rubinsteyn",
         author_email="alex {dot} rubinsteyn {at} mssm {dot} edu",
-        url="https://github.com/iskandr/serializable",
+        url="https://github.com/hamemrlab/serializable",
         license="http://www.apache.org/licenses/LICENSE-2.0.html",
         classifiers=[
             'Development Status :: 3 - Alpha',
