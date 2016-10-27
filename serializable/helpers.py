@@ -18,7 +18,7 @@ from __future__ import print_function, division, absolute_import
 from types import FunctionType, BuiltinFunctionType
 
 import simplejson as json
-from six import string_types
+from six import string_types, PY2, PY3
 
 from .primitive_types import return_primitive
 
@@ -29,11 +29,30 @@ def _lookup_value(module_string, name, _cache={}):
         value = _cache[key]
     else:
         module_parts = module_string.split(".")
-        attribute_list = module_parts[1:] + name.split(".")
-        # traverse the chain of imports and nested classes to get to the
-        # actual class value
-        value = __import__(module_parts[0])
-        for attribute_name in attribute_list:
+        # assuming that only JSON serialization from old Python2 runs
+        # of serialization would generate __builtin__ as a module
+        # name
+
+        if PY3 and module_parts[0] == "__builtin__":
+            module_parts = ["six", "moves", "builtins"] + module_parts[1:]
+        value = None
+        for i in range(1, len(module_parts) + 1):
+            try:
+                # try importing successively longer chains of
+                # sub-modules but break when we hit something that's
+                # not a module but actually data
+                qualified_name = ".".join(module_parts[:i])
+                value = __import__(
+                    qualified_name,
+                    fromlist=module_parts[:i - 1])
+            except ImportError:
+                break
+
+        if value is None:
+            raise ImportError(module_parts[0])
+        # once we've imported as much as we can, continue with getattr
+        # lookups
+        for attribute_name in module_parts[i:] + name.split("."):
             value = getattr(value, attribute_name)
         _cache[key] = value
     return value
@@ -46,6 +65,13 @@ def class_from_serializable_representation(class_repr):
     """
     return _lookup_value(class_repr["__module__"], class_repr["__name__"])
 
+def get_module_name(obj):
+    module_name = obj.__module__
+    if PY2 and module_name == "__builtin__":
+        return "six.moves.builtins"
+    else:
+        return module_name
+
 def class_to_serializable_representation(cls):
     """
     Given a class, return two strings:
@@ -55,7 +81,7 @@ def class_to_serializable_representation(cls):
     The class can be reconstructed from these two strings by calling
     class_from_serializable_representation.
     """
-    return {"__module__": cls.__module__, "__name__": cls.__name__}
+    return {"__module__": get_module_name(cls), "__name__": cls.__name__}
 
 def function_from_serializable_representation(fn_repr):
     """
@@ -77,7 +103,7 @@ def function_to_serializable_representation(fn):
     if hasattr(fn, "__closure__") and fn.__closure__ is not None:
         raise ValueError("No serializable representation for closure %s" % (fn,))
 
-    return {"__module__": fn.__module__, "__name__": fn.__name__}
+    return {"__module__": get_module_name(fn), "__name__": fn.__name__}
 
 SERIALIZED_DICTIONARY_KEYS_FIELD = "__serialized_keys__"
 SERIALIZED_DICTIONARY_KEYS_ELEMENT_PREFIX = (
