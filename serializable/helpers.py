@@ -22,6 +22,31 @@ from six import string_types, PY2, PY3
 
 from .primitive_types import return_primitive
 
+def init_arg_names(obj):
+    """
+    Names of arguments to __init__ method of this object's class.
+    """
+    # doing something wildly hacky by pulling out the arguments to
+    # __init__ and hoping that they match fields defined on the
+    # object
+    init_fn = obj.__init__
+    try:
+        init_code = init_fn.__func__.__code__
+    except AttributeError:
+        # if object is a namedtuple then we can return its fields
+        # as the required initial args
+        if hasattr(obj, "_fields"):
+            return obj._fields
+        else:
+            raise ValueError("Cannot determine args to %s.__init__" % (obj,))
+
+    arg_names = init_code.co_varnames[:init_code.co_argcount]
+    # drop self argument
+    nonself_arg_names = arg_names[1:]
+    return nonself_arg_names
+
+def simple_object_to_dict(self):
+    return {name: getattr(self, name) for name in init_arg_names(self)}
 
 def _lookup_value(module_string, name, _cache={}):
     key = (module_string, name)
@@ -202,18 +227,19 @@ def list_to_serializable_repr(x):
 def to_dict(obj):
     """
     If value wasn't isn't a primitive scalar or collection then it needs to
-    either implement to_dict (instances of Serializable) or _asdict
-    (named tuples)
+    either implement to_dict (instances of Serializable) or has member
+    data matching each required arg of __init__.
     """
     if isinstance(obj, dict):
         return obj
     elif hasattr(obj, "to_dict"):
         return obj.to_dict()
-    elif hasattr(obj, "_asdict"):
-        return obj._asdict()
-    raise ValueError(
-        "Cannot convert %s : %s to dictionary" % (
-            obj, type(obj)))
+    try:
+        return simple_object_to_dict(obj)
+    except:
+        raise ValueError(
+            "Cannot convert %s : %s to dictionary" % (
+                obj, type(obj)))
 
 @return_primitive
 def to_serializable_repr(x):

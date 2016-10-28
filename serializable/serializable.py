@@ -17,6 +17,7 @@ from .helpers import (
     to_serializable_repr,
     to_json,
     from_json,
+    init_arg_names,
 )
 
 class Serializable(object):
@@ -51,15 +52,7 @@ class Serializable(object):
         The default implementation is to assume all the arguments to __init__
         have fields of the same name on a serializable object.
         """
-        # doing something wildly hacky by pulling out the arguments to
-        # __init__ and hoping that they match fields defined on the
-        # object
-        init_fn = self.__init__.__func__
-        init_code = init_fn.__code__
-        arg_names = init_code.co_varnames[:init_code.co_argcount]
-        # drop self argument
-        nonself_arg_names = arg_names[1:]
-        return {name: getattr(self, name) for name in nonself_arg_names}
+        return {name: getattr(self, name) for name in init_arg_names(self)}
 
     def __hash__(self):
         return hash(tuple(sorted(self.to_dict().items())))
