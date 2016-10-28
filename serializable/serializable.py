@@ -17,7 +17,7 @@ from .helpers import (
     to_serializable_repr,
     to_json,
     from_json,
-    init_arg_names,
+    simple_object_to_dict,
 )
 
 class Serializable(object):
@@ -52,7 +52,7 @@ class Serializable(object):
         The default implementation is to assume all the arguments to __init__
         have fields of the same name on a serializable object.
         """
-        return {name: getattr(self, name) for name in init_arg_names(self)}
+        return simple_object_to_dict(self)
 
     def __hash__(self):
         return hash(tuple(sorted(self.to_dict().items())))
