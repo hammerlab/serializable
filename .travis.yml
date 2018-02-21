@@ -34,13 +34,4 @@ script:
   - nosetests test --verbose --with-coverage --cover-package=serializable
 after_success:
   coveralls
-deploy:
-  provider: pypi
-  distributions: sdist
-  user: hammerlab
-  password:
-    secure: "voln0SA6GaJ+sxnI3BYCz2yWXy0YWQ9YKmeB8nXtCTnBMZoE+FxiNDuJ6winoRPqub0BE+x8cyxkADOm0gwnRwSMPpIIasNMEw3R1SH2DBTOX5j0p+qDagQhlf9dPBMA2iDCO/NCfXbucdxk7aeB/o4Wwc1P4OEImKyp1ecbggC+TwMtBtiZZSPNgpJvTpll29Ae0YFe73/j3KdLrKrstXBvT79YRe8GKeujvdeeXakZtMqEE2Lnap1YI98UGfjUDxiF6gE8JG9QHi2r5WRB+jOv8qly8QTdB/8Dq5Ybz67Ndx2rnKK2VM2GCQ6Tk8rNP8c7Kxp0uTylVe1TRKxhfpCw4yr3pmoNOkVI71oqYYX27J2LiDsI68SQtjz/TcgbNq61j6hZC2DYqzFjZ3z9iZLVqbiMjMgNntlAqURsXulVSuo/oul7Ui7p3VRu/fqjw1hlelmOdUvlMXTOOhh2xcW6S7tGbNf8GSjlNs9nwOZQquqAl9HTjNdQU+438GhNDf3GkwpkM+RiQoulzoPoY/+NcGCIg5v2/rXkwG8uqmKBqCYFFHjsmYpK0ndEi8EhmAhb4WGAPYSFaNJChCQTAFQrNiGOW3xu41R9W4jM/4RZvpjVjWAG/QJPADJEkFyA4gL+w/9Cn+k3SkRmWq9nMFgyufRQT0aTh/EwKO1hObs="
-  on:
-    branch: master
-    condition: $TRAVIS_PYTHON_VERSION = "2.7"
 
