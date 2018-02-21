@@ -27,18 +27,20 @@ def init_arg_names(obj):
     Names of arguments to __init__ method of this object's class.
     """
     # doing something wildly hacky by pulling out the arguments to
-    # __init__ and hoping that they match fields defined on the
+    # __init__ or __new__ and hoping that they match fields defined on the
     # object
-    init_fn = obj.__init__
     try:
-        init_code = init_fn.__func__.__code__
+        init_code = obj.__init__.__func__.__code__
     except AttributeError:
-        # if object is a namedtuple then we can return its fields
-        # as the required initial args
-        if hasattr(obj, "_fields"):
-            return obj._fields
-        else:
-            raise ValueError("Cannot determine args to %s.__init__" % (obj,))
+        try:
+            init_code = obj.__new__.__func__.__code__
+        except AttributeError:
+            # if object is a namedtuple then we can return its fields
+            # as the required initial args
+            if hasattr(obj, "_fields"):
+                return obj._fields
+            else:
+                raise ValueError("Cannot determine args to %s.__init__" % (obj,))
 
     arg_names = init_code.co_varnames[:init_code.co_argcount]
     # drop self argument
@@ -261,9 +263,11 @@ def to_serializable_repr(x):
         return function_to_serializable_representation(x)
     elif type(x) is type:
         return class_to_serializable_representation(x)
-    state_dictionary = to_serializable_repr(to_dict(x))
-    state_dictionary["__class__"] = class_to_serializable_representation(x.__class__)
-    return state_dictionary
+    else:
+        state_dictionary = to_serializable_repr(to_dict(x))
+        state_dictionary["__class__"] = class_to_serializable_representation(
+            x.__class__)
+        return state_dictionary
 
 @return_primitive
 def from_serializable_repr(x):

@@ -2,7 +2,7 @@ sudo: false  # Use container-based infrastructure
 language: python
 python:
   - "2.7"
-  - "3.4"
+  - "3.6"
 before_install:
   # Commands below copied from: http://conda.pydata.org/docs/travis.html
   # We do this conditionally because it saves us some downloading if the
@@ -20,16 +20,10 @@ before_install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-addons:
-  apt:
-    packages:
-    # install pandoc for use with pypandoc for converting the README
-    # from markdown to RST
-    - pandoc
 install:
   - >
       conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
-      nose pylint
+      nose pylint pandoc
   - source activate test-environment
   - pip install pypandoc
   - pip install -r requirements.txt
@@ -45,6 +39,8 @@ deploy:
   distributions: sdist
   user: hammerlab
   password:
-    secure: l9cmzH42iy3g+y7WF9OEX96tz/8KX2CFxyhs2PnVEI+eoTOZ65U/NMUKNYd+oxG7lUysHzeOKehy1W8e+3SODRC7Uid+pQtkYVNarRp9NqucrLNQwukWvgFM+r//J6sL7Pro5Ns9Cl+64dxtkyBuXvN+8lB6MuG+OmRwCkmXcwZlRs2TFF/Yea6G4lomXjIoJUGBPZJkqKnBWF9TcKlSWjJrSimqvvviZgA68yxxn8o17lWf3b2c8JBqVzbfaQz0a998okZmHEyXg3SmRkaL6Lyr9N9UrVqSvFilEYd2FEwbjXOCbrr/fPiRsLCQazCsjo+PS4H0aDy5T601yjF66C8v/CF+M+FbJ0dbhr1U9VAez0RFFu0vADnSmmTeCTJtvTHLFV3Oc0tC8ler3R5QfBEYcHoof77UsaoV79dQIOBV9x6fNJQZ5HUUBWDf3AL4YmN4yoGrq8NPNxe4P/3ybL/ghlfUAqkrBftmwszLHC+IovU+OxNGJ+fzLcJmHqucl8xPIJ8lRj2Fn1bLgTJPDVZI6Pc9dDis/x5Mq6x5znKyET5OdlqhS70PE7zBjSarGlEg6IRaPrCulgA2GAfeSHq9u/oUdv7MECa7JITOQUkNr5Jr9KejfClVlJ5fGQALtQo7ci1gaiUO2m9gJnXCiqD11b3fC7hCOcEEEJjxKhM=
+    secure: "voln0SA6GaJ+sxnI3BYCz2yWXy0YWQ9YKmeB8nXtCTnBMZoE+FxiNDuJ6winoRPqub0BE+x8cyxkADOm0gwnRwSMPpIIasNMEw3R1SH2DBTOX5j0p+qDagQhlf9dPBMA2iDCO/NCfXbucdxk7aeB/o4Wwc1P4OEImKyp1ecbggC+TwMtBtiZZSPNgpJvTpll29Ae0YFe73/j3KdLrKrstXBvT79YRe8GKeujvdeeXakZtMqEE2Lnap1YI98UGfjUDxiF6gE8JG9QHi2r5WRB+jOv8qly8QTdB/8Dq5Ybz67Ndx2rnKK2VM2GCQ6Tk8rNP8c7Kxp0uTylVe1TRKxhfpCw4yr3pmoNOkVI71oqYYX27J2LiDsI68SQtjz/TcgbNq61j6hZC2DYqzFjZ3z9iZLVqbiMjMgNntlAqURsXulVSuo/oul7Ui7p3VRu/fqjw1hlelmOdUvlMXTOOhh2xcW6S7tGbNf8GSjlNs9nwOZQquqAl9HTjNdQU+438GhNDf3GkwpkM+RiQoulzoPoY/+NcGCIg5v2/rXkwG8uqmKBqCYFFHjsmYpK0ndEi8EhmAhb4WGAPYSFaNJChCQTAFQrNiGOW3xu41R9W4jM/4RZvpjVjWAG/QJPADJEkFyA4gL+w/9Cn+k3SkRmWq9nMFgyufRQT0aTh/EwKO1hObs="
   on:
     branch: master
+    condition: $TRAVIS_PYTHON_VERSION = "2.7"
+
