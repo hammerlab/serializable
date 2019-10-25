@@ -68,13 +68,21 @@ class Serializable(object):
         return state_dict
 
     @classmethod
+    def _update_kwargs(cls, kwargs):
+        """
+        Rename any old keyword arguments to preserve backwards compatibility
+        """
+        return kwargs
+
+
+    @classmethod
     def from_dict(cls, state_dict):
         """
         Given a dictionary of flattened fields (result of calling to_dict()),
         returns an instance.
         """
         state_dict = cls._reconstruct_nested_objects(state_dict)
-        return cls(**state_dict)
+        return cls(**cls._update_kwargs(state_dict))
 
     def to_json(self):
         """

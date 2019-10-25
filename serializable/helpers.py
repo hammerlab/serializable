@@ -194,9 +194,10 @@ def from_serializable_dict(x):
     __name__, __class__, __module__ as metadata about how to reconstruct
     an object.
 
-    TODO: It would be cleaner to always wrap each object in a layer of type
-    metadata and then have an inner dictionary which represents the flattened
-    result of to_dict() for user-defined objects.
+    TODO:
+        It would be cleaner to always wrap each object in a layer of type
+        metadata and then have an inner dictionary which represents the
+        flattened result of to_dict() for user-defined objects.
     """
     if "__name__" in x:
         return _lookup_value(x.pop("__module__"), x.pop("__name__"))
