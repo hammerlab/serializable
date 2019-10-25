@@ -71,16 +71,21 @@ class Serializable(object):
     # None if the keyword has been removed from a class
     _KEYWORD_ALIASES = {}
 
+
     @classmethod
     def _update_kwargs(cls, kwargs):
         """
         Rename any old keyword arguments to preserve backwards compatibility
         """
-        for (old_name, new_name) in cls._KEYWORD_ALIASES:
-            if old_name in kwargs:
-                old_value = kwargs.pop(old_name)
-                if new_name and new_name not in kwargs:
-                    kwargs[new_name] = old_value
+        # check every class in the inheritance chain for its own
+        # definition of _KEYWORD_ALIASES
+        for klass in cls.mro():
+            if hasattr(klass, '_KEYWORD_ALIASES'):
+                for (old_name, new_name) in klass._KEYWORD_ALIASES:
+                    if old_name in kwargs:
+                        old_value = kwargs.pop(old_name)
+                        if new_name and new_name not in kwargs:
+                            kwargs[new_name] = old_value
         return kwargs
 
 
