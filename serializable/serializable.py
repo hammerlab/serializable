@@ -12,6 +12,7 @@
 
 from __future__ import print_function, division, absolute_import
 
+
 from .helpers import (
     from_serializable_repr,
     to_serializable_repr,
@@ -71,7 +72,6 @@ class Serializable(object):
     # None if the keyword has been removed from a class
     _KEYWORD_ALIASES = {}
 
-
     @classmethod
     def _update_kwargs(cls, kwargs):
         """
@@ -80,14 +80,13 @@ class Serializable(object):
         # check every class in the inheritance chain for its own
         # definition of _KEYWORD_ALIASES
         for klass in cls.mro():
-            if hasattr(klass, '_KEYWORD_ALIASES'):
-                for (old_name, new_name) in klass._KEYWORD_ALIASES:
-                    if old_name in kwargs:
-                        old_value = kwargs.pop(old_name)
-                        if new_name and new_name not in kwargs:
-                            kwargs[new_name] = old_value
+            keyword_rename_dict = getattr(klass, '_KEYWORD_ALIASES', {})
+            for (old_name, new_name) in  keyword_rename_dict.items():
+                if old_name in kwargs:
+                    old_value = kwargs.pop(old_name)
+                    if new_name and new_name not in kwargs:
+                        kwargs[new_name] = old_value
         return kwargs
-
 
     @classmethod
     def from_dict(cls, state_dict):
