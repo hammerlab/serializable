@@ -40,15 +40,18 @@ def test_normal_keywords():
 
 
 def test_removed_keyword():
-    obj = TestClassWithKeywordAliases.from_json(
-            TestClassWithKeywordAliases(x=1, old_gone=2).to_json())
+    d = TestClassWithKeywordAliases(x=1).to_dict()
+    d["old_gone"] = "WILL BE ERASED"
+    obj = TestClassWithKeywordAliases.from_dict(d)
     eq_(obj.x, 1)
     assert not hasattr(obj, "old_gone")
 
 
 def test_removed_keyword_inheritance():
-    obj = DerivedClassWithoutMoreKeywordAliases.from_json(
-            TestClassWithKeywordAliases(x=1, y=2, old_gone=3).to_json())
+    d = DerivedClassWithoutMoreKeywordAliases(x=1, y=2).to_dict()
+    d["old_gone"] = "WILL BE REMOVED"
+
+    obj = DerivedClassWithoutMoreKeywordAliases.from_dict(d)
     eq_(obj.x, 1)
     eq_(obj.y, 2)
     assert not hasattr(obj, "old_gone")
