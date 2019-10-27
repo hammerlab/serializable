@@ -12,6 +12,7 @@
 
 from __future__ import print_function, division, absolute_import
 
+
 from .helpers import (
     from_serializable_repr,
     to_serializable_repr,
@@ -67,6 +68,26 @@ class Serializable(object):
         """
         return state_dict
 
+    # dictionary mapping old keywords to either new names or
+    # None if the keyword has been removed from a class
+    _KEYWORD_ALIASES = {}
+
+    @classmethod
+    def _update_kwargs(cls, kwargs):
+        """
+        Rename any old keyword arguments to preserve backwards compatibility
+        """
+        # check every class in the inheritance chain for its own
+        # definition of _KEYWORD_ALIASES
+        for klass in cls.mro():
+            keyword_rename_dict = getattr(klass, '_KEYWORD_ALIASES', {})
+            for (old_name, new_name) in  keyword_rename_dict.items():
+                if old_name in kwargs:
+                    old_value = kwargs.pop(old_name)
+                    if new_name and new_name not in kwargs:
+                        kwargs[new_name] = old_value
+        return kwargs
+
     @classmethod
     def from_dict(cls, state_dict):
         """
@@ -74,7 +95,7 @@ class Serializable(object):
         returns an instance.
         """
         state_dict = cls._reconstruct_nested_objects(state_dict)
-        return cls(**state_dict)
+        return cls(**cls._update_kwargs(state_dict))
 
     def to_json(self):
         """
