@@ -2,14 +2,14 @@ from serializable import Serializable
 from nose.tools import eq_
 
 class TestClassWithKeywordAliases(Serializable):
-    _KEYWORD_ALIASES = {"old_x": "x", "old_gone": None}
+    _SERIALIZABLE_KEYWORD_ALIASES = {"old_x": "x", "old_gone": None}
 
     def __init__(self, x):
         self.x = x
 
 
 class DerivedClassWithMoreKeywordAliases(TestClassWithKeywordAliases):
-    _KEYWORD_ALIASES = {"old_y": "y"}
+    _SERIALIZABLE_KEYWORD_ALIASES = {"old_y": "y"}
 
     def __init__(self, x, y):
         self.x = x

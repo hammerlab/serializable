@@ -70,7 +70,7 @@ class Serializable(object):
 
     # dictionary mapping old keywords to either new names or
     # None if the keyword has been removed from a class
-    _KEYWORD_ALIASES = {}
+    _SERIALIZABLE_KEYWORD_ALIASES = {}
 
     @classmethod
     def _update_kwargs(cls, kwargs):
@@ -80,7 +80,7 @@ class Serializable(object):
         # check every class in the inheritance chain for its own
         # definition of _KEYWORD_ALIASES
         for klass in cls.mro():
-            keyword_rename_dict = getattr(klass, '_KEYWORD_ALIASES', {})
+            keyword_rename_dict = getattr(klass, '_SERIALIZABLE_KEYWORD_ALIASES', {})
             for (old_name, new_name) in  keyword_rename_dict.items():
                 if old_name in kwargs:
                     old_value = kwargs.pop(old_name)
