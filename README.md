@@ -6,7 +6,14 @@ Base class with serialization methods for user-defined Python objects
 ## Usage
 Classes which inherit from `Serializable` are enabled with default implementations of
 `to_json`, `from_json`, `__reduce__` (for pickling), and other serialization
-helpers. A derived class must either have a member data matching the name of each argument to `__init__` or, alternatively, must provide a user-defined `to_dict()` method which returns a dictionary whose keys match the arguments to `__init__`.
+helpers. 
+
+A derived class must either:
+
+* have a member data matching the name of each argument to `__init__`
+* provide a user-defined `to_dict()` method which returns a dictionary whose keys match the arguments to `__init__`
+
+If you change the keyword arguments to a class which derives from `Serializable` but would like to be able to deserialize older JSON representations then you can define a class-level dictionary called `_KEYWORD_ALIASES` which maps old keywords to new names (or `None` if a keyword was removed).
 
 ## Limitations
 
