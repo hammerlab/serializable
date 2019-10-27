@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2018. Mount Sinai School of Medicine
+# Copyright (c) 2014-2019. Mount Sinai School of Medicine
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,14 +30,6 @@ except IOError as e:
     print(e)
     print("Failed to open %s" % readme_path)
 
-try:
-    import pypandoc
-    readme = pypandoc.convert(readme, to='rst', format='md')
-except ImportError as e:
-    print(e)
-    print("Failed to convert %s to reStructuredText", readme_filename)
-    pass
-
 with open('serializable/__init__.py', 'r') as f:
     version = re.search(
         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
@@ -53,8 +45,8 @@ if __name__ == '__main__':
         version=version,
         description="Base class with serialization helpers for user-defined Python objects",
         author="Alex Rubinsteyn",
-        author_email="alex.rubinsteyn@mssm.edu",
-        url="https://github.com/openvax/serializable",
+        author_email="alex@openvax.org",
+        url="https://github.com/iskandr/serializable",
         license="http://www.apache.org/licenses/LICENSE-2.0.html",
         classifiers=[
             'Development Status :: 3 - Alpha',
@@ -69,5 +61,6 @@ if __name__ == '__main__':
             "simplejson",
         ],
         long_description=readme,
+        long_description_content_type='text/markdown',
         packages=['serializable'],
     )
